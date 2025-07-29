@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapAwayLove ❤️</title>
+    <style>
+        :root {
+            --bg-start: #2c3e50;
+            --bg-end: #34495e;
+            --text-color: #ecf0f1;
+            --heart-color: #e74c3c;
+            --button-bg: rgba(231, 76, 60, 0.8);
+            --button-hover: rgba(231, 76, 60, 1);
+            --overlay-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background 2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-text {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 90%;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-button {
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .start-button:hover {
+            background: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .message-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .message {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            padding: 1rem 2rem;
+            border-radius: 20px;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+            max-width: 90vw;
+            backdrop-filter: blur(10px);
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 1.5rem;
+            color: var(--heart-color);
+            pointer-events: none;
+            z-index: 50;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #f1c40f);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        .final-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #ffa726, #ffeb3b);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+
+        .final-screen.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .final-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: url('https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?w=400&h=400&fit=crop&crop=faces') center/cover;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+            border: 5px solid white;
+        }
+
+        .final-message {
+            font-size: clamp(1.3rem, 4vw, 2.5rem);
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            line-height: 1.4;
+        }
+
+        .final-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .final-button {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tap-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 480px) {
+            .final-image {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .final-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .final-button {
+                width: 200px;
+            }
+        }
+
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes heartFloat {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        .heart.animate {
+            animation: heartFloat 2s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-text">
+            Feeling down, Maisha? Tap anywhere to let me take the pain away… ❤️
+        </div>
+        <button class="start-button" id="startButton">Start Healing</button>
+    </div>
+
+    <!-- Message Container -->
+    <div class="message-container">
+        <div class="message" id="message"></div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Tap Counter -->
+    <div class="tap-counter" id="tapCounter">Taps: 0</div>
+
+    <!-- Floating Hearts Container -->
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- Final Screen -->
+    <div class="final-screen" id="finalScreen">
+        <div class="final-image"></div>
+        <div class="final-message">
+            All the pain is gone. You're going to be okay ❤️
+        </div>
+        <div class="final-buttons">
+            <button class="final-button" id="restartButton">Restart Healing</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Settings
+        const CONFIG = {
+            maxTaps: 50,
+            herName: "Malyshka", // Change this to her name
+            messages: [
+                "You are stronger than you know, Malyshka ❤️",
+                "This pain is temporary, beautiful",
+                "Malyshka, you're not alone in this journey",
+                "Every storm passes, and sunshine follows ☀️",
+                "Your heart is healing with each moment",
+                "You deserve all the happiness in the world, prettiest",
+                "I believe in your strength and resilience",
+                "You are valued more than words can express",
+                "This difficult moment will make you stronger",
+                "Malyshka, your smile can light up the darkest days",
+                "You have overcome challenges before, you'll overcome this too",
+                "Warmth and comfort surround you like an embrace",
+                "You are precious and valued, beautiful",
+                "Every breath you take is a step toward healing",
+                "You are capable of amazing things",
+                "Tomorrow holds new possibilities, prettiest",
+                "Your courage inspires everyone around you",
+                "This pain will transform into wisdom and strength",
+                "You are beautiful inside and out, Malyshka",
+                "You make the world a better place"
+            ],
+            shareMessage: "Someone special created this just for me ❤️ They wanted to remind me that I'm loved and that all pain is temporary. Feeling grateful for the love in my life! 💕",
+            finalImageUrl: "https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?w=400&h=400&fit=crop&crop=faces" // Replace with your photo
+        };
+
+        // Game State
+        let tapCount = 0;
+        let isHealing = false;
+        let currentMessageIndex = 0;
+
+        // DOM Elements
+        const overlay = document.getElementById('overlay');
+        const startButton = document.getElementById('startButton');
+        const message = document.getElementById('message');
+        const progressFill = document.getElementById('progressFill');
+        const tapCounter = document.getElementById('tapCounter');
+        const floatingHearts = document.getElementById('floatingHearts');
+        const finalScreen = document.getElementById('finalScreen');
+        const restartButton = document.getElementById('restartButton');
+        const shareButton = document.getElementById('shareButton');
+
+        // Initialize
+        startButton.addEventListener('click', startHealing);
+        document.body.addEventListener('click', handleTap);
+        document.body.addEventListener('touchend', handleTap);
+        restartButton.addEventListener('click', restart);
+
+        function startHealing() {
+            overlay.classList.add('hidden');
+            isHealing = true;
+            updateBackground();
+        }
+
+        function handleTap(e) {
+            if (!isHealing || overlay.classList.contains('show') || finalScreen.classList.contains('show')) {
+                return;
+            }
+
+            e.preventDefault();
+            
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                x = e.changedTouches[0].clientX;
+                y = e.changedTouches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            tapCount++;
+            updateTapCounter();
+            updateProgress();
+            createHeart(x, y);
+            showMessage();
+            updateBackground();
+
+            if (tapCount >= CONFIG.maxTaps) {
+                setTimeout(showFinalScreen, 1000);
+            }
+        }
+
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'heart animate';
+            heart.innerHTML = '❤️';
+            heart.style.left = (x - 15) + 'px';
+            heart.style.top = (y - 15) + 'px';
+            
+            floatingHearts.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 2000);
+        }
+
+        function showMessage() {
+            const randomMessage = CONFIG.messages[Math.floor(Math.random() * CONFIG.messages.length)];
+            message.textContent = randomMessage;
+            message.classList.add('show');
+            
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 2500);
+        }
+
+        function updateTapCounter() {
+            tapCounter.textContent = `Taps: ${tapCount}`;
+        }
+
+        function updateProgress() {
+            const progress = (tapCount / CONFIG.maxTaps) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function updateBackground() {
+            const progress = tapCount / CONFIG.maxTaps;
+            const startR = 44, startG = 62, startB = 80;  // Dark blue-gray
+            const endR = 255, endG = 107, endB = 107;     // Warm pink-red
+            
+            const r = Math.round(startR + (endR - startR) * progress);
+            const g = Math.round(startG + (endG - startG) * progress);
+            const b = Math.round(startB + (endB - startB) * progress);
+            
+            const startR2 = 52, startG2 = 73, startB2 = 94;  // Dark blue-gray
+            const endR2 = 255, endG2 = 167, endB2 = 38;      // Warm orange
+            
+            const r2 = Math.round(startR2 + (endR2 - startR2) * progress);
+            const g2 = Math.round(startG2 + (endG2 - startG2) * progress);
+            const b2 = Math.round(startB2 + (endB2 - startB2) * progress);
+            
+            document.body.style.background = `linear-gradient(135deg, rgb(${r}, ${g}, ${b}), rgb(${r2}, ${g2}, ${b2}))`;
+        }
+
+        function showFinalScreen() {
+            isHealing = false;
+            finalScreen.classList.add('show');
+            
+            // Set the final image if provided
+            if (CONFIG.finalImageUrl) {
+                const finalImage = document.querySelector('.final-image');
+                finalImage.style.backgroundImage = `url('${CONFIG.finalImageUrl}')`;
+            }
+        }
+
+        function restart() {
+            tapCount = 0;
+            isHealing = true;
+            finalScreen.classList.remove('show');
+            updateTapCounter();
+            updateProgress();
+            updateBackground();
+            
+            // Clear any existing hearts
+            floatingHearts.innerHTML = '';
+        }
+
+        // Touch support for mobile
+        document.body.addEventListener('touchstart', function(e) {
+            // Don't prevent default here to allow proper touch handling
+        }, { passive: true });
+
+        // Prevent context menu on long press
+        document.body.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
